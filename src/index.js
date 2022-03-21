@@ -24,7 +24,13 @@ function checksExistsUserAccount(request, response, next) {
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const { user } = request;
+
+  if(!user.pro && user.todos.length === 10) {
+    return response.status(403);
+  }
+
+  return next();
 }
 
 function checksTodoExists(request, response, next) {
@@ -81,9 +87,11 @@ app.get('/todos', checksExistsUserAccount, (request, response) => {
   return response.json(user.todos);
 });
 
-app.post('/todos', checksExistsUserAccount, checksCreateTodosUserAvailability, (request, response) => {
+app.post('/todos', checksExistsUserAccount,  (request, response) => {
   const { title, deadline } = request.body;
   const { user } = request;
+
+  // checksCreateTodosUserAvailability
 
   const newTodo = {
     id: uuidv4(),
