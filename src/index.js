@@ -34,7 +34,30 @@ function checksCreateTodosUserAvailability(request, response, next) {
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+  const { id } = request.params;
+
+  const user = users.find(user => user.username === username);
+
+  if(!user) {
+    return response.status(404).json({ error: 'User already exists' });
+  }
+
+  if(!validate(id)){
+    return response.status(400).json({ error: 'ToDo already exists' });
+  }
+  
+  const todo = user.todos.find(operator => operator.id === id);
+
+  if(!todo){
+    return response.status(404).json({ error: 'ToDo already exists' });
+  }
+  
+
+  request.user = user;
+  request.todo = todo;
+
+  return next();
 }
 
 function findUserById(request, response, next) {
@@ -87,11 +110,9 @@ app.get('/todos', checksExistsUserAccount, (request, response) => {
   return response.json(user.todos);
 });
 
-app.post('/todos', checksExistsUserAccount,  (request, response) => {
+app.post('/todos', checksExistsUserAccount, checksCreateTodosUserAvailability, (request, response) => {
   const { title, deadline } = request.body;
   const { user } = request;
-
-  // checksCreateTodosUserAvailability
 
   const newTodo = {
     id: uuidv4(),
